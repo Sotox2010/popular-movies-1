@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".moviedetail.MovieDetailActivity">
+
+    <com.jesussoto.android.popularmovies.widget.SynchronizedScrollView
+        android:id="@+id/scroll_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <FrameLayout
+            android:id="@+id/scroll_view_child"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:clipChildren="false">
+
+            <FrameLayout
+                android:id="@+id/backdrop_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:foreground="@drawable/backdrop_scrim">
+
+                <com.jesussoto.android.popularmovies.widget.AspectRatioImageView
+                    android:id="@+id/backdrop"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/backdrop_height_dynamic"
+                    android:scaleType="centerCrop"
+                    app:aspectRatio="@dimen/backdrop_ratio_dynamic"
+                    tools:background="@drawable/image_placeholder"/>
+
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                tools:layout_marginTop="200dp"
+                android:clipChildren="false">
+
+                <RelativeLayout
+                    android:id="@+id/title_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?colorPrimary"
+                    android:paddingStart="@dimen/keyline_margin"
+                    android:paddingEnd="@dimen/keyline_margin"
+                    android:paddingTop="@dimen/spacing_large"
+                    android:paddingBottom="@dimen/spacing_large"
+                    android:clipToPadding="false"
+                    android:clipChildren="false">
+
+                    <com.jesussoto.android.popularmovies.widget.AspectRatioImageView
+                        android:id="@+id/poster"
+                        android:layout_width="100dp"
+                        android:layout_height="0dp"
+                        app:aspectRatio="@dimen/movie_poster_aspect_ratio"
+                        android:layout_marginTop="-64dp"
+                        android:layout_marginEnd="@dimen/spacing_large"
+                        tools:background="#fff"/>
+
+                    <TextView
+                        style="@style/TextAppearance.Headline6"
+                        android:id="@+id/title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_toEndOf="@id/poster"
+                        android:fontFamily="sans-serif-condensed"
+                        android:textStyle="bold"
+                        tools:text="Avengers: Infinity War"/>
+
+                    <TextView
+                        style="@style/TextAppearance.Body1"
+                        android:id="@+id/original_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_alignStart="@id/title"
+                        android:layout_below="@id/title"
+                        tools:text="Avengers: Infinity War"/>
+
+                    <TextView
+                        style="@style/TextAppearance.Body2"
+                        android:id="@+id/rating"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_medium"
+                        android:layout_alignStart="@id/original_title"
+                        android:layout_below="@id/original_title"
+                        android:drawableStart="@drawable/ic_star_black_12dp"
+                        android:fontFeatureSettings="onum"
+                        android:drawablePadding="@dimen/spacing_medium"
+                        tools:text="8.6 / 10"/>
+
+                    <TextView
+                        style="@style/TextAppearance.Body2"
+                        android:id="@+id/release_date"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/spacing_xlarge"
+                        android:layout_alignBaseline="@id/rating"
+                        android:layout_toEndOf="@id/rating"
+                        android:layout_below="@id/original_title"
+                        android:drawableStart="@drawable/ic_date_black_12dp"
+                        android:drawablePadding="@dimen/spacing_medium"
+                        android:fontFeatureSettings="onum"
+                        tools:text="May. 2018"/>
+
+                </RelativeLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingTop="@dimen/spacing_large"
+                    android:paddingBottom="@dimen/spacing_large"
+                    android:paddingStart="@dimen/keyline_margin"
+                    android:paddingEnd="@dimen/keyline_margin"
+                    android:background="?android:windowBackground">
+
+                    <TextView
+                        android:id="@+id/overview_label"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:gravity="center_vertical"
+                        android:textSize="14sp"
+                        android:text="@string/overview_label"
+                        android:fontFeatureSettings="smcp"
+                        android:letterSpacing="0.1"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="@color/colorAccent"/>
+
+                    <TextView
+                        style="@style/TextAppearance.Body2"
+                        android:id="@+id/overview"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        tools:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. In dapibus felis vitae ipsum aliquam ullamcorper. Phasellus nunc nibh, tincidunt ac pellentesque eget, interdum eget ex. Ut nec mattis dolor, a gravida urna. Maecenas vitae ligula et odio mollis lobortis nec eu libero.\n\nDonec vel odio tellus. Integer leo justo, sollicitudin vitae consequat pharetra, pretium a purus. Ut sit amet nibh elementum, vestibulum velit non, pellentesque diam. Fusce et mauris in erat tincidunt volutpat at vitae mauris. Aenean et felis sed urna ornare tempor et vel mi.\n\nDuis aliquam libero vel ex posuere imperdiet. Maecenas arcu est, euismod vel erat et, placerat fermentum enim. Phasellus viverra faucibus nulla nec mollis. Curabitur in leo ut risus pharetra dictum. Donec magna neque, tempor in orci at, faucibus luctus justo. Nunc tempus blandit lorem, at cursus ante mattis id."/>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </FrameLayout>
+
+    </com.jesussoto.android.popularmovies.widget.SynchronizedScrollView>
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="?actionBarSize"
+        app:navigationIcon="@drawable/ic_back_white_24dp"
+        android:background="@color/transparent"
+        android:fitsSystemWindows="true"/>
+
+
+</FrameLayout>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".movies.MoviesActivity">
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingTop="@dimen/movies_grid_top_padding_with_toolbar"
+        android:paddingBottom="@dimen/movie_grid_margin_vertical"
+        android:paddingLeft="@dimen/movie_grid_margin_horizontal"
+        android:paddingRight="@dimen/movie_grid_margin_horizontal"
+        android:clipToPadding="false"
+        android:clipChildren="false"
+        android:scrollbars="vertical"/>
+
+    <ProgressBar
+        android:id="@+id/progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"/>
+
+    <!-- This should be replaced later with a ViewStub for better performance -->
+    <LinearLayout
+        android:id="@+id/empty_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="48dp"
+        android:layout_marginRight="48dp"
+        android:layout_gravity="center"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <TextView
+            style="@style/TextAppearance.Body1"
+            android:id="@+id/empty_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="@string/error_connection"/>
+
+        <Button
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"
+            android:id="@+id/empty_action"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/retry"/>
+
+    </LinearLayout>
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?actionBarSize"
+        app:navigationIcon="@null"
+        tools:title="Popular Movies"
+        android:elevation="8dp">
+
+        <Spinner
+            android:id="@+id/toolbar_spinner"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+
+    </android.support.v7.widget.Toolbar>
+
+</FrameLayout>

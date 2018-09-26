@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">Popular Movies</string>
+
+    <string name="error_connection">There was an error while retrieving movies. Check your connection and try again.</string>
+    <string name="retry">Retry</string>
+
+    <string name="filter_popular_movies">Popular Movies</string>
+    <string name="filter_top_rated_movies">Top Rated Movies</string>
+
+    <string-array name="movie_filters">
+        <item>@string/filter_popular_movies</item>
+        <item>@string/filter_top_rated_movies</item>
+    </string-array>
+
+
+    <!-- Detail screen -->
+    <string name="overview_label">Overview</string>
+    <string name="rating_format">%.1f / 10</string>
+
+</resources>
