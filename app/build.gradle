@@ -1,18 +1,18 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 28
     defaultConfig {
         applicationId "com.jesussoto.android.popularmovies"
         minSdkVersion 21
-        targetSdkVersion 27
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "TMDB_API_BASE_URL", "\"https://api.themoviedb.org/3/\"")
         buildConfigField("String", "TMDB_IMAGE_BASE_URL", "\"https://image.tmdb.org/t/p/\"")
-        buildConfigField("String", "TMDB_API_KEY", "\"<INSERT_API_KEY_HERE>\"")
+        buildConfigField("String", "TMDB_API_KEY", "\"<INSERT_TMDB_API_KEY_HERE>\"")
     }
     buildTypes {
         release {
@@ -28,6 +28,12 @@ android {
 
 ext {
     lifecycleVersion = "1.1.1"
+    supportLibVersion = "28.0.0"
+    constraintsLayoutVersion = "1.1.3"
+    pagingLibVersion = "1.0.1"
+    picassoVersion = "2.5.2"
+    gsonVersion = "2.8.2"
+    retrofitVersion = "2.4.0"
     rxJavaVersion = "2.2.1"
     rxAndroidVersion = "2.1.0"
     butterKnifeVersion = "8.8.1"
@@ -36,24 +42,24 @@ ext {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
 
-    implementation 'com.android.support:appcompat-v7:27.1.1'
-    implementation 'com.android.support:cardview-v7:27.1.1'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
-    implementation 'com.android.support:recyclerview-v7:27.1.1'
-    implementation 'com.android.support:design:27.1.1'
-    implementation 'com.squareup.picasso:picasso:2.5.2'
-    implementation 'com.google.code.gson:gson:2.8.2'
-    implementation 'com.squareup.retrofit2:retrofit:2.4.0'
-    implementation 'com.squareup.retrofit2:converter-gson:2.4.0'
-    implementation 'com.squareup.retrofit2:adapter-rxjava2:2.4.0'
-    implementation 'com.squareup.okhttp3:logging-interceptor:3.9.1'
+    implementation "com.android.support:appcompat-v7:$supportLibVersion"
+    implementation "com.android.support:cardview-v7:$supportLibVersion"
+    implementation "com.android.support:recyclerview-v7:$supportLibVersion"
+    implementation "com.android.support:design:$supportLibVersion"
+    implementation "com.android.support.constraint:constraint-layout:$constraintsLayoutVersion"
+    implementation "com.squareup.picasso:picasso:$picassoVersion"
+    implementation "com.google.code.gson:gson:$gsonVersion"
+    implementation "com.squareup.retrofit2:retrofit:$retrofitVersion"
+    implementation "com.squareup.retrofit2:converter-gson:$retrofitVersion"
+    implementation "com.squareup.retrofit2:adapter-rxjava2:$retrofitVersion"
+    implementation "com.squareup.okhttp3:logging-interceptor:3.9.1"
     implementation "android.arch.lifecycle:extensions:$lifecycleVersion"
     annotationProcessor "android.arch.lifecycle:compiler:$lifecycleVersion"
 
-    implementation "android.arch.paging:runtime:1.0.1"
+    implementation "android.arch.paging:runtime:$pagingLibVersion"
 
     // Palette
-    implementation 'com.android.support:palette-v7:27.1.1'
+    implementation "com.android.support:palette-v7:$supportLibVersion"
 
     // ReactiveX: RxJava and RxAndroid
     implementation "io.reactivex.rxjava2:rxjava:$rxJavaVersion"

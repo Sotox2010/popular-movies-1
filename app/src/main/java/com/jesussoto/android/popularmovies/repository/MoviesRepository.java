@@ -1,21 +1,24 @@
 package com.jesussoto.android.popularmovies.repository;
 
-import android.annotation.SuppressLint;
 import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MutableLiveData;
+import android.arch.lifecycle.Transformations;
+import android.arch.paging.LivePagedListBuilder;
+import android.arch.paging.PagedList;
 import android.support.annotation.NonNull;
 
-import com.jesussoto.android.popularmovies.api.MoviesResponse;
-import com.jesussoto.android.popularmovies.api.Resource;
 import com.jesussoto.android.popularmovies.api.WebService;
 import com.jesussoto.android.popularmovies.api.WebServiceUtils;
 import com.jesussoto.android.popularmovies.model.Movie;
+import com.jesussoto.android.popularmovies.movies.MoviesListing;
 
-import java.util.List;
-
-import io.reactivex.schedulers.Schedulers;
+import java.util.concurrent.Executors;
 
 public class MoviesRepository {
+
+    /**
+     * Default page size by TheMovieDB API.
+     */
+    public static final int PAGE_SIZE = 20;
 
     private static MoviesRepository sInstance;
 
@@ -36,124 +39,78 @@ public class MoviesRepository {
     // Web service to fetch the data from.
     private WebService mService;
 
-    // Simple in-memory cache for popular movies.
-    private MutableLiveData<Resource<List<Movie>>> mPopularMoviesLiveData;
-
-    // Simple in-memory cache for top rated movies.
-    private MutableLiveData<Resource<List<Movie>>> mTopRatedMoviesLiveData;
-
     public MoviesRepository(@NonNull WebService service) {
         mService = service;
     }
 
     /**
-     * Load top-rated movies from the network if no previous fetch occurred, or return the
-     * cached movies.
+     * Builds paged popular movies
      *
-     * @return {@link LiveData} with the result of the most popular movies network fetch.
+     * @return {@link MoviesListing} encapsulating all information about popular movies stream.
      */
-    @SuppressLint("CheckResult")
-    public LiveData<Resource<List<Movie>>> loadPopularMovies() {
-        if (mPopularMoviesLiveData != null
-                && mPopularMoviesLiveData.getValue().getStatus() != Resource.Status.ERROR) {
+    public MoviesListing getPopularMoviesListing() {
+        PopularMoviesDataSourceFactory factory = new PopularMoviesDataSourceFactory(mService);
+        PagedList.Config pagedListConfig = new PagedList.Config.Builder()
+                .setEnablePlaceholders(false)
+                .setInitialLoadSizeHint(2 * PAGE_SIZE)
+                .setPageSize(PAGE_SIZE)
+                .build();
 
-            return mPopularMoviesLiveData;
-        }
+        LiveData<PagedList<Movie>> pagedList = new LivePagedListBuilder<>(factory, pagedListConfig)
+                .setFetchExecutor(Executors.newFixedThreadPool(3))
+                .build();
 
-        if (mPopularMoviesLiveData == null) {
-            mPopularMoviesLiveData = new MutableLiveData<>();
-        }
+        return new MoviesListing(
+                pagedList,
 
-        fetchPopularMovies(mPopularMoviesLiveData);
-        return mPopularMoviesLiveData;
+                Transformations.switchMap(factory.getSourceLiveData(),
+                        AbstractMoviesPageKeyedDataSource::getNetworkState),
+
+                Transformations.switchMap(factory.getSourceLiveData(),
+                        AbstractMoviesPageKeyedDataSource::getInitialLoading),
+
+                () -> {
+                    PopularMoviesPageKeyedDataSource dataSource = factory.getSourceLiveData().getValue();
+                    if (dataSource != null) {
+                        dataSource.retry();
+                    }
+                }
+        );
     }
 
     /**
-     * Load top-rated movies from the network if no previous fetch occurred, or return the
-     * cached movies.
      *
-     * @return {@link LiveData} with the result of the top-rated movies network fetch.
-     */
-    public LiveData<Resource<List<Movie>>> loadTopRatedMovies() {
-        if (mTopRatedMoviesLiveData != null
-                && mTopRatedMoviesLiveData .getValue().getStatus() != Resource.Status.ERROR) {
-
-            return mTopRatedMoviesLiveData;
-        }
-
-        if (mTopRatedMoviesLiveData == null) {
-            mTopRatedMoviesLiveData = new MutableLiveData<>();
-        }
-
-        fetchTopRatedMovies(mTopRatedMoviesLiveData);
-        return mTopRatedMoviesLiveData;
-    }
-
-    /**
-     * Forces refresh of the popular movies from network.
-     */
-    public void refreshPopularMovies() {
-        if (mPopularMoviesLiveData == null) {
-            throw new IllegalStateException("Popular movies LiveData must not be null.");
-        }
-
-        fetchPopularMovies(mPopularMoviesLiveData);
-    }
-
-    /**
-     * Forces refresh of the top-rated movies from network.
-     */
-    public void refreshTopRatedMovies() {
-        if (mTopRatedMoviesLiveData == null) {
-            throw new IllegalStateException("Top-rated movies LiveData must not be null.");
-        }
-
-        fetchTopRatedMovies(mTopRatedMoviesLiveData);
-    }
-
-    /**
-     * Core method for fetch popular movies from the network using RxJava, placed on a separate
-     * method for re-usability on first load or forced refresh.
      *
-     * @param resultData the {@link LiveData} to post the result to.
+     * @return {@link MoviesListing} encapsulating all information about top-rated movies stream.
      */
-    @SuppressLint("CheckResult")
-    private void fetchPopularMovies(@NonNull MutableLiveData<Resource<List<Movie>>> resultData) {
-        mService.getPopularMovies()
-                .doOnSubscribe(__ -> resultData.postValue(Resource.loading(null)))
-                .map(MoviesResponse::getResults)
-                .map(Resource::success)
-                .subscribeOn(Schedulers.computation())
-                .observeOn(Schedulers.computation())
-                .subscribe(
-                        // onSuccess
-                        resultData::postValue,
+    public MoviesListing getTopRatedMoviesListing() {
+        TopRatedMoviesDataSourceFactory factory = new TopRatedMoviesDataSourceFactory(mService);
+        PagedList.Config pagedListConfig = new PagedList.Config.Builder()
+                .setEnablePlaceholders(false)
+                .setInitialLoadSizeHint(2 * PAGE_SIZE)
+                .setPageSize(PAGE_SIZE)
+                .build();
 
-                        //onError
-                        throwable -> resultData.postValue(Resource.error(throwable, null))
-                );
-    }
+        LiveData<PagedList<Movie>> pagedList = new LivePagedListBuilder<>(factory, pagedListConfig)
+                .setFetchExecutor(Executors.newFixedThreadPool(3))
+                .build();
 
-    /**
-     * Core method for fetch top-rated movies from the network using RxJava, placed on a separate
-     * method for re-usability on first load or forced refresh.
-     *
-     * @param resultData the {@link LiveData} to post the result to.
-     */
-    @SuppressLint("CheckResult")
-    private void fetchTopRatedMovies(@NonNull MutableLiveData<Resource<List<Movie>>> resultData) {
-        mService.getTopRatedMovies()
-                .doOnSubscribe(__ -> resultData.postValue(Resource.loading(null)))
-                .map(MoviesResponse::getResults)
-                .map(Resource::success)
-                .subscribeOn(Schedulers.computation())
-                .observeOn(Schedulers.computation())
-                .subscribe(
-                        // onSuccess
-                        resultData::postValue,
+        return new MoviesListing(
+                pagedList,
 
-                        //onError
-                        throwable -> resultData.postValue(Resource.error(throwable, null))
-                );
+                Transformations.switchMap(factory.getSourceLiveData(),
+                        AbstractMoviesPageKeyedDataSource::getNetworkState),
+
+                Transformations.switchMap(factory.getSourceLiveData(),
+                        AbstractMoviesPageKeyedDataSource::getInitialLoading),
+
+                () -> {
+                    TopRatedMoviesPageKeyedDataSource dataSource = factory.getSourceLiveData().getValue();
+                    if (dataSource != null) {
+                        dataSource.retry();
+                    }
+                }
+        );
     }
 }
+

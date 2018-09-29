@@ -16,6 +16,7 @@ import android.widget.ProgressBar;
 import android.widget.Spinner;
 
 import com.jesussoto.android.popularmovies.R;
+import com.jesussoto.android.popularmovies.api.Resource;
 import com.jesussoto.android.popularmovies.model.Movie;
 import com.jesussoto.android.popularmovies.moviedetail.MovieDetailActivity;
 import com.jesussoto.android.popularmovies.widget.AlwaysEnterToolbarScrollListener;
@@ -39,7 +40,7 @@ public class MoviesActivity extends AppCompatActivity {
     @BindView(R.id.empty_container)
     ViewGroup mEmptyContainer;
 
-    private MoviesAdapter mAdapter;
+    private MoviesListAdapter mAdapter;
 
     private AlwaysEnterToolbarScrollListener mAlwaysEnterToolbarScrollListener;
 
@@ -60,7 +61,7 @@ public class MoviesActivity extends AppCompatActivity {
         setupRecyclerView();
 
         Button emptyAction = mEmptyContainer.findViewById(R.id.empty_action);
-        emptyAction.setOnClickListener(__ -> mViewModel.refreshMovies());
+        emptyAction.setOnClickListener(__ -> mViewModel.retryLastFetch());
 
         bindViewModel();
         mViewModel.setFiltering(filter);
@@ -89,10 +90,13 @@ public class MoviesActivity extends AppCompatActivity {
     private void bindViewModel() {
         mViewModel = ViewModelProviders.of(this).get(MoviesViewModel.class);
 
-        // Observe to changes in the ui model, every time the fetch status or the movie filtering
-        // changes, a new ui model will be emitted and the ui will be updated based on the new ui
-        // model.
-        mViewModel.getMoviesUiModel().observe(this, this::updateView);
+        mViewModel.getMoviesPagedList().observe(
+                this, pagedList -> mAdapter.submitList(pagedList));
+
+        mViewModel.getNetworkState().observe(
+                this, networkState -> mAdapter.setNetworkState(networkState));
+
+        mViewModel.getInitialLoadState().observe(this, this::updateView);
     }
 
     /**
@@ -137,10 +141,21 @@ public class MoviesActivity extends AppCompatActivity {
         int spanCount = getResources().getInteger(R.integer.movie_grid_span_count);
         mAlwaysEnterToolbarScrollListener = new AlwaysEnterToolbarScrollListener(mToolbar);
 
-        mAdapter = new MoviesAdapter(null);
+        mAdapter = new MoviesListAdapter(() -> mViewModel.retryLastFetch());
         mAdapter.setOnMovieTappedListener(this::navigateToMovieDetail);
 
-        mMoviesRecyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
+        // This grid layout manager with custom span size lookup will ensure that the 'loading' view
+        // takes the whole row size instead of a single cell size.
+        GridLayoutManager layoutManager = new GridLayoutManager(this, spanCount);
+        layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int position) {
+                return position == mAdapter.getItemCount() - 1 && mAdapter.hasExtraRow()
+                        ? spanCount : 1;
+            }
+        });
+
+        mMoviesRecyclerView.setLayoutManager(layoutManager);
         mMoviesRecyclerView.setAdapter(mAdapter);
         mMoviesRecyclerView.addOnScrollListener(mAlwaysEnterToolbarScrollListener);
     }
@@ -149,18 +164,17 @@ public class MoviesActivity extends AppCompatActivity {
      * Updates the view based on the UiModel state, this gets called each time new data is
      * available to display in the UI.
      *
-     * @param uiModel with all the data to display in the UI.
+     * @param initialLoadState with all the data to display in the UI.
      */
-    private void updateView(MoviesUiModel uiModel) {
-        if (uiModel == null) {
+    private void updateView(Resource.Status initialLoadState) {
+        if (initialLoadState == null) {
             return;
         }
 
-        int listVisibility = uiModel.getMovies() == null ? View.GONE : View.VISIBLE;
-        int progressVisibility = uiModel.isProgressVisible() ? View.VISIBLE : View.GONE;
-        int errorVisibility = uiModel.isErrorVisible() ? View.VISIBLE : View.GONE;
+        int listVisibility = initialLoadState == Resource.Status.SUCCESS ? View.VISIBLE : View.GONE;
+        int progressVisibility = initialLoadState == Resource.Status.LOADING ? View.VISIBLE : View.GONE;
+        int errorVisibility = initialLoadState == Resource.Status.ERROR ? View.VISIBLE : View.GONE;
 
-        mAdapter.replaceData(uiModel.getMovies());
         mMoviesRecyclerView.setVisibility(listVisibility);
         mProgressIndicator.setVisibility(progressVisibility);
         mEmptyContainer.setVisibility(errorVisibility);

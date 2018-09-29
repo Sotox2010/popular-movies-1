@@ -4,6 +4,7 @@ import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Transformations;
 import android.arch.lifecycle.ViewModel;
+import android.arch.paging.PagedList;
 import android.support.annotation.NonNull;
 
 import com.jesussoto.android.popularmovies.api.Resource;
@@ -18,49 +19,115 @@ public class MoviesViewModel extends ViewModel {
 
     private MutableLiveData<MovieFilterType> mFilteringLiveData;
 
+    // Reference to the popular and top-rated listing, we switch them over depending on the current
+    // filtering.
+    private MoviesListing mPopularMoviesListing;
+    private MoviesListing mTopRatedMoviesListing;
+
     MoviesViewModel() {
-        // This should be preferable injected from outside;
+        // This repo should be preferable injected from outside using D.I.
         mRepository = MoviesRepository.getInstance();
 
         mFilteringLiveData = new MutableLiveData<>();
+        mPopularMoviesListing = mRepository.getPopularMoviesListing();
+        mTopRatedMoviesListing = mRepository.getTopRatedMoviesListing();
     }
 
-    public LiveData<MoviesUiModel> getMoviesUiModel() {
-        return Transformations.map(
-            Transformations.switchMap(mFilteringLiveData, this::getMoviesByFilter),
-            this::constructUiModel
-        );
+    /**
+     * Gets filtered movies paged data source live data.
+     *
+     * @return {@link LiveData} of movies paged stream.
+     */
+    public LiveData<PagedList<Movie>> getMoviesPagedList() {
+        return Transformations.switchMap(mFilteringLiveData, this::getMoviesByFilter);
     }
 
+    /**
+     * Gets filtered network state live data.
+     *
+     * @return {@link LiveData} of network state.
+     */
+    public LiveData<Resource.Status> getNetworkState() {
+        return Transformations.switchMap(mFilteringLiveData, this::getNetworkStateByFilter);
+    }
+
+    /**
+     * Gets filtered initial load network state live data.
+     *
+     * @return {@link LiveData} of initial load network state.
+     */
+    public LiveData<Resource.Status> getInitialLoadState() {
+        return Transformations.switchMap(mFilteringLiveData, this::getInitialLoadStateByFilter);
+    }
+
+    /**
+     * Updates the current movie filtering.
+     *
+     * @param newFilter the new filter for the movies.
+     */
     public void setFiltering(MovieFilterType newFilter) {
         if (getFiltering() != newFilter) {
             mFilteringLiveData.setValue(newFilter);
         }
     }
 
+    /**
+     * Retrieves the currently active movie filtering.
+     *
+     * @return the active filter.
+     */
     public MovieFilterType getFiltering() {
         return mFilteringLiveData.getValue();
     }
 
-    private LiveData<Resource<List<Movie>>> getMoviesByFilter(@NonNull MovieFilterType filter) {
+    /**
+     * Obtains the appropriate movies paged data source based on the given filter.
+     *
+     * @param filter {@link MovieFilterType} to filter the movies.
+     * @return {@link LiveData} wrapping the filtered movies paged data source.
+     */
+    private LiveData<PagedList<Movie>> getMoviesByFilter(@NonNull MovieFilterType filter) {
         return filter == MovieFilterType.POPULAR_MOVIES
-                ? mRepository.loadPopularMovies()
-                : mRepository.loadTopRatedMovies();
+                ? mPopularMoviesListing.getPagedList()
+                : mTopRatedMoviesListing.getPagedList();
     }
 
-    public void refreshMovies() {
-        if (getFiltering() == MovieFilterType.POPULAR_MOVIES) {
-            mRepository.refreshPopularMovies();
-        } else {
-            mRepository.refreshTopRatedMovies();
+    /**
+     * Obtains the network state based on the given filter.
+     *
+     * @param filter {@link MovieFilterType} to filter the state.
+     * @return {@link LiveData} wrapping the network state.
+     */
+    private LiveData<Resource.Status> getNetworkStateByFilter(@NonNull MovieFilterType filter) {
+        return filter == MovieFilterType.POPULAR_MOVIES
+                ? mPopularMoviesListing.getNetworkState()
+                : mTopRatedMoviesListing.getNetworkState();
+    }
+
+    /**
+     * Obtains the initial load network state based on the given filter.
+     *
+     * @param filter {@link MovieFilterType} to filter the state.
+     * @return {@link LiveData} wrapping the network state.
+     */
+    private LiveData<Resource.Status> getInitialLoadStateByFilter(@NonNull MovieFilterType filter) {
+        return filter == MovieFilterType.POPULAR_MOVIES
+                ? mPopularMoviesListing.getInitialLoadState()
+                : mTopRatedMoviesListing.getInitialLoadState();
+    }
+
+    /**
+     * Retries the last failed data fetch.
+     */
+    public void retryLastFetch() {
+        try {
+            if (getFiltering() == MovieFilterType.POPULAR_MOVIES) {
+                mPopularMoviesListing.getRetryAction().run();
+            } else {
+                mTopRatedMoviesListing.getRetryAction().run();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-    }
-
-    private MoviesUiModel constructUiModel(Resource<List<Movie>> result) {
-        List<Movie> movies = result.getData();
-        boolean showLoading = result.getStatus() == Resource.Status.LOADING;
-        boolean showError = result.getStatus() == Resource.Status.ERROR;
-
-        return new MoviesUiModel(movies, showLoading, showError);
     }
 }

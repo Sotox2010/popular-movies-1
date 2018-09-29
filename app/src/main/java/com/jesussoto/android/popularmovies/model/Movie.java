@@ -2,6 +2,9 @@ package com.jesussoto.android.popularmovies.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v7.util.DiffUtil;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -31,6 +34,7 @@ public class Movie implements Parcelable {
     @SerializedName("popularity")
     private Float popularity;
 
+    @Nullable
     @SerializedName("poster_path")
     private String posterPath;
 
@@ -40,6 +44,7 @@ public class Movie implements Parcelable {
     @SerializedName("original_title")
     private String originalTitle;
 
+    @Nullable
     @SerializedName("backdrop_path")
     private String backdropPath;
 
@@ -117,6 +122,7 @@ public class Movie implements Parcelable {
         return popularity;
     }
 
+    @Nullable
     public String getPosterPath() {
         return posterPath;
     }
@@ -129,6 +135,7 @@ public class Movie implements Parcelable {
         return originalTitle;
     }
 
+    @Nullable
     public String getBackdropPath() {
         return backdropPath;
     }
@@ -187,4 +194,25 @@ public class Movie implements Parcelable {
         dest.writeString(overview);
         dest.writeString(releaseDate);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this)
+            return true;
+
+        Movie article = (Movie) obj;
+        return article.id.equals(this.id);
+    }
+
+    public static DiffUtil.ItemCallback<Movie> DIFF_CALLBACK = new DiffUtil.ItemCallback<Movie>() {
+        @Override
+        public boolean areItemsTheSame(@NonNull Movie oldItem, @NonNull Movie newItem) {
+            return oldItem.id.equals(newItem.id);
+        }
+
+        @Override
+        public boolean areContentsTheSame(@NonNull Movie oldItem, @NonNull Movie newItem) {
+            return oldItem.equals(newItem);
+        }
+    };
 }

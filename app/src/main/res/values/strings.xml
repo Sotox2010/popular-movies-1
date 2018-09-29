@@ -16,5 +16,7 @@
     <!-- Detail screen -->
     <string name="overview_label">Overview</string>
     <string name="rating_format">%.1f / 10</string>
+    <string name="cd_movie_poster">movie poster</string>
+    <string name="cd_movie_backdrop">movie backdrop</string>
 
 </resources>

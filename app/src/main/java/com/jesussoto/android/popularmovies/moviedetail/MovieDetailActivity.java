@@ -136,6 +136,9 @@ public class MovieDetailActivity extends AppCompatActivity
         });
     }
 
+    /**
+     * Setup toolbar properties.
+     */
     private void setupToolbar() {
         if (mToolbarColor == Color.TRANSPARENT) {
             mToolbarColor = ContextCompat.getColor(this, R.color.colorPrimary);
@@ -155,18 +158,27 @@ public class MovieDetailActivity extends AppCompatActivity
         mToolbarColorAnimator.setAutoCancel(true);
     }
 
+    /**
+     * Update view to represent the movie details.
+     *
+     * @param movie {@link Movie} to update the view.
+     */
     private void updateView(@NonNull Movie movie) {
         SimpleDateFormat dateFormatter = new SimpleDateFormat("MMM YYYY", Locale.getDefault());
 
-        Picasso.with(this)
-                .load(WebServiceUtils.buildMoviePosterUri(mMovie.getPosterPath()))
-                .placeholder(R.drawable.poster_image_placeholder)
-                .into(mPosterTarget);
+        if (mMovie.getPosterPath() != null) {
+            Picasso.with(this)
+                    .load(WebServiceUtils.buildMoviePosterUri(mMovie.getPosterPath()))
+                    .placeholder(R.drawable.poster_image_placeholder)
+                    .into(mPosterTarget);
+        }
 
-        Picasso.with(this)
-                .load(WebServiceUtils.buildMovieBackdropUri(mMovie.getBackdropPath()))
-                .placeholder(R.drawable.image_placeholder)
-                .into(mBackdropView);
+        if (mMovie.getBackdropPath() != null) {
+            Picasso.with(this)
+                    .load(WebServiceUtils.buildMovieBackdropUri(mMovie.getBackdropPath()))
+                    .placeholder(R.drawable.image_placeholder)
+                    .into(mBackdropView);
+        }
 
         mTitleView.setText(movie.getTitle());
         mOriginalTitleView.setText(movie.getOriginalTitle());
@@ -210,6 +222,11 @@ public class MovieDetailActivity extends AppCompatActivity
         animateToolbar(shouldColorize);
     }
 
+    /**
+     * Animates toolbar show or hide.
+     *
+     * @param show whether to show the toolbar or hide it.
+     */
     private void animateToolbar(boolean show) {
         if (show != mToolbarColored) {
             int startColor = show ? Color.TRANSPARENT : mToolbarColor;

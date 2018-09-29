@@ -7,6 +7,9 @@ import com.jesussoto.android.popularmovies.api.WebService;
 
 import retrofit2.Call;
 
+/**
+ * Paged data source for Popular Movies.
+ */
 public class PopularMoviesPageKeyedDataSource extends AbstractMoviesPageKeyedDataSource {
 
     public PopularMoviesPageKeyedDataSource(@NonNull WebService service) {
